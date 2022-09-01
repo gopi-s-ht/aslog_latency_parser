@@ -1,13 +1,15 @@
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Date;
+
 public class OutputFormat {
-    String dttm;
+    Date dttm;
     String namespace;
     String operation;
     int rec_count;
     int time_taken_in_ms;
     final String DELIM = ",";
-    public OutputFormat(String dttm, String namespace, String operation, int rec_count, int time_taken_in_ms) {
+    public OutputFormat(Date dttm, String namespace, String operation, int rec_count, int time_taken_in_ms) {
         this.dttm = dttm;
         this.namespace = namespace;
         this.operation = operation;
@@ -15,11 +17,11 @@ public class OutputFormat {
         this.time_taken_in_ms = time_taken_in_ms;
     }
 
-    public String getDttm() {
+    public Date getDttm() {
         return dttm;
     }
 
-    public void setDttm(String dttm) {
+    public void setDttm(Date dttm) {
         this.dttm = dttm;
     }
 
@@ -56,6 +58,6 @@ public class OutputFormat {
     }
 
     public String getOutputRecord() {
-        return this.dttm+DELIM+this.namespace+DELIM+this.operation+DELIM+Integer.toString(this.rec_count)+DELIM+Integer.toString(this.time_taken_in_ms);
+        return this.dttm.getTime()+DELIM+this.namespace+DELIM+this.operation+DELIM+this.rec_count+DELIM+this.time_taken_in_ms;
     }
 }

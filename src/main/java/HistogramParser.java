@@ -5,7 +5,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /*Sample file contents
 Aug 24 2022 15:10:45 GMT: INFO (info): (hist.c:321) histogram dump: {digitwin}-write (1219810 total) msec
@@ -22,47 +25,51 @@ Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:340)  (00: 0000657500) (01: 00000
 public class HistogramParser {
 
     private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(HistogramParser.class);
-    private void Parser(String data) {
+    private void Parser(String data) throws ParseException {
         String[] lines = data.split("\n");
         String dttm;
+        String dttmPattern = "MMM dd yyyy HH:mm:ss z";
+        SimpleDateFormat dtformat = new SimpleDateFormat(dttmPattern);
         String namespace;
         String operation;
         ArrayList<Integer> rec_count = new ArrayList<>();
         ArrayList<Integer> time_taken_in_ms = new ArrayList<>();
 
         //Parsing first line
-        dttm = lines[0].split("INFO")[0].trim();
-        namespace = StringUtils.substringBetween(lines[0], "{", "}");
-        if(lines[0].contains("batch-index"))
-            operation = "batch-index";
-        else if(lines[0].contains("write"))
-            operation = "write";
-        else if(lines[0].contains("read"))
-            operation = "read";
-        else {
-            operation = "unknown";
-            logger.log(Level.WARN, "Unknown operations type");
-        }
+        dttm = lines[0].split("INFO")[0].trim().replaceAll(".$", "");
+        Date dt = dtformat.parse(dttm);
+        String part1 = lines[0].split("histogram dump:")[1].trim();
+        namespace = StringUtils.substringBetween(part1, "{", "}"); //namespace can be null for batch-index operations
+        if(namespace == null)
+            operation = part1.substring(0, part1.indexOf(" "));
+        else
+            operation = StringUtils.substringBetween(part1,  "{", " ");
         //Parsing subsequent lines
         for(int i=1; i<lines.length; i++) {
             String[] buckets = StringUtils.substringsBetween(lines[i], "(", ")");
             for (int j=2;j<buckets.length;j++) { //first 2 is for info, hist.c:341
-                time_taken_in_ms.add(time_taken_in_ms.size(), (int)Math.pow(2, Integer.valueOf(buckets[j].split(":")[0].trim())));
+                time_taken_in_ms.add(time_taken_in_ms.size(), (int)Math.pow(2, Integer.parseInt(buckets[j].split(":")[0].trim())));
                 rec_count.add(rec_count.size(), Integer.valueOf(buckets[j].split(":")[1].trim()));
             }
         }
 
         //Create output
         for(int i=0; i<time_taken_in_ms.size();i++) {
-            OutputFormat obj = new OutputFormat(dttm, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i));
+            OutputFormat obj = new OutputFormat(dt, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i));
             logger.log(Level.INFO, obj.getOutputRecord());
         }
 
     }
-    public static void main(String[] args) throws IOException {
-        HistogramParser hist = new HistogramParser();
-        String filepath = "C:\\Users\\ws_htu374\\Downloads\\DigiTwin\\misc\\as_log_sample.log";
+    public static void main(String[] args) throws IOException, ParseException {
         BasicConfigurator.configure(); //fix for log4j error. https://stackoverflow.com/questions/12532339/no-appenders-could-be-found-for-loggerlog4j
-        hist.Parser(new String(Files.readAllBytes(Paths.get(filepath))));
+        //Validate input arguments
+        if(args.length != 1) {
+            logger.log(Level.ERROR, "Incorrect number of arguments specified. Please provide aerospike log file. Ex: /var/log/aerospike/aerospike.log");
+
+        } else {
+            HistogramParser hist = new HistogramParser();
+            String filepath = args[0];
+            hist.Parser(new String(Files.readAllBytes(Paths.get(filepath))));
+        }
     }
 }
