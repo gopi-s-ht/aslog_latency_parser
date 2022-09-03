@@ -1,10 +1,9 @@
-import org.apache.log4j.BasicConfigurator;
+package latency_parser;
+
 import org.apache.log4j.Level;
 import org.apache.commons.lang3.StringUtils;
-
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.stereotype.Repository;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -22,10 +21,12 @@ Aug 24 2022 15:11:05 GMT: INFO (info): (hist.c:340)  (00: 0005376216)
 Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:321) histogram dump: batch-index (657567 total) msec
 Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:340)  (00: 0000657500) (01: 0000000049) (02: 0000000018)
 */
+@Repository
+@Qualifier("ParseRepository")
 public class HistogramParser {
-
+    private static ArrayList<String> output = new ArrayList<>();
     private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(HistogramParser.class);
-    private void Parser(String data) throws ParseException {
+    public void Parser(String data) throws ParseException {
         String[] lines = data.split("\n");
         String dttm;
         String dttmPattern = "MMM dd yyyy HH:mm:ss z";
@@ -43,7 +44,7 @@ public class HistogramParser {
         if(namespace == null)
             operation = part1.substring(0, part1.indexOf(" "));
         else
-            operation = StringUtils.substringBetween(part1,  "{", " ");
+            operation = StringUtils.substringBetween(part1,  "-", " ");
         //Parsing subsequent lines
         for(int i=1; i<lines.length; i++) {
             String[] buckets = StringUtils.substringsBetween(lines[i], "(", ")");
@@ -52,24 +53,14 @@ public class HistogramParser {
                 rec_count.add(rec_count.size(), Integer.valueOf(buckets[j].split(":")[1].trim()));
             }
         }
-
         //Create output
         for(int i=0; i<time_taken_in_ms.size();i++) {
-            OutputFormat obj = new OutputFormat(dt, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i));
+            ASLatency obj = new ASLatency(dt, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i));
+            output.add(obj.getOutputRecord());
             logger.log(Level.INFO, obj.getOutputRecord());
         }
-
     }
-    public static void main(String[] args) throws IOException, ParseException {
-        BasicConfigurator.configure(); //fix for log4j error. https://stackoverflow.com/questions/12532339/no-appenders-could-be-found-for-loggerlog4j
-        //Validate input arguments
-        if(args.length != 1) {
-            logger.log(Level.ERROR, "Incorrect number of arguments specified. Please provide aerospike log file. Ex: /var/log/aerospike/aerospike.log");
-
-        } else {
-            HistogramParser hist = new HistogramParser();
-            String filepath = args[0];
-            hist.Parser(new String(Files.readAllBytes(Paths.get(filepath))));
-        }
+    public String getLatencyRecords() {
+        return String.join("\n", output);
     }
 }
