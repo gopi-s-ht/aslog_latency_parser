@@ -1,9 +1,15 @@
 package latency_parser;
 
+import org.apache.commons.io.input.Tailer;
+import org.apache.commons.io.input.TailerListener;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+
+import java.io.File;
 
 
 @SpringBootApplication(scanBasePackages = {"latency_parser.*"})
@@ -18,8 +24,9 @@ public class LatencyMain {
 
     }
 
-    public static String LogFilePath;
+    public static String logFilePath;
     public static Boolean tail;
+    public static String outputFile;
     public static void main(String[] args) {
         BasicConfigurator.configure(); //fix for log4j error. https://stackoverflow.com/questions/12532339/no-appenders-could-be-found-for-loggerlog4j
         //Validate input arguments
@@ -29,17 +36,31 @@ public class LatencyMain {
         } else if(args[0].equals("--help") || args[0].equals("-h")) {
             printHelp();
         } else {
-            LogFilePath = args[0];
-            tail = args.length != 2 || !args[1].equals("false");
-            SpringApplication.run(LatencyMain.class, args);
-            /*TailerListener listener = new LogFileListener();
-            Tailer tailer;
-            if(args.length == 2) {
-                tailer = new Tailer(new File(args[0]), listener, 10000, Boolean.getBoolean(args[1]));
-            } else {
-                tailer = new Tailer(new File(args[0]), listener, 10000, true);
+            logFilePath = args[0];
+            File logFile = new File(logFilePath);
+            //Check if as_log_latency is present.
+            if(!logFile.exists()) {
+                logger.log(Level.ERROR, logFilePath + " doesn't exists. Terminating...");
+                System.exit(1);
             }
-            tailer.run(); */
+            if(!logFile.canRead()) {
+                logger.log(Level.ERROR, logFilePath + " is not readable, Please check file permissions. Terminating...");
+                System.exit(1);
+            }
+            tail = args.length != 2 || !args[1].equals("false");
+            if(System.getProperty("os.name").contains("Windows"))
+                outputFile = "C:\\Users\\ws_htu374\\Documents\\as_latency_metrics.csv";
+            else outputFile = "/var/log/as_latency_report.csv";
+
+            logger.log(Level.INFO, "Sending metrics to " + outputFile);
+            SpringApplication.run(LatencyMain.class, args);
         }
+    }
+
+    @EventListener(ApplicationReadyEvent.class)
+    public void StartParser() {
+        TailerListener listener = new LogFileListener();
+        Tailer tailer = new Tailer(new File(LatencyMain.logFilePath), listener, 10000, LatencyMain.tail);
+        tailer.run();
     }
 }

@@ -2,6 +2,7 @@ package latency_parser;
 
 import org.apache.commons.io.input.TailerListenerAdapter;
 
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 
@@ -16,7 +17,7 @@ public class LogFileListener extends TailerListenerAdapter {
                 HistogramParser histParser = new HistogramParser();
                 try {
                     histParser.Parser(String.join("\n", newData));
-                } catch (ParseException e) {
+                } catch (ParseException | IOException e) {
                     e.printStackTrace();
                 }
                 newData = new ArrayList<>();

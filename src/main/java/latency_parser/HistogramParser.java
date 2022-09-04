@@ -2,8 +2,9 @@ package latency_parser;
 
 import org.apache.log4j.Level;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Repository;
+
+import java.io.FileWriter;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -21,12 +22,9 @@ Aug 24 2022 15:11:05 GMT: INFO (info): (hist.c:340)  (00: 0005376216)
 Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:321) histogram dump: batch-index (657567 total) msec
 Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:340)  (00: 0000657500) (01: 0000000049) (02: 0000000018)
 */
-@Repository
-@Qualifier("ParseRepository")
 public class HistogramParser {
-    private static ArrayList<String> output = new ArrayList<>();
     private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(HistogramParser.class);
-    public void Parser(String data) throws ParseException {
+    public void Parser(String data) throws ParseException, IOException {
         String[] lines = data.split("\n");
         String dttm;
         String dttmPattern = "MMM dd yyyy HH:mm:ss z";
@@ -56,11 +54,9 @@ public class HistogramParser {
         //Create output
         for(int i=0; i<time_taken_in_ms.size();i++) {
             ASLatency obj = new ASLatency(dt, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i));
-            output.add(obj.getOutputRecord());
-            logger.log(Level.INFO, obj.getOutputRecord());
+            FileWriter fileWriter = new FileWriter(LatencyMain.outputFile, true);
+            fileWriter.append(obj.getOutputRecord()).append("\n");
+            fileWriter.close();
         }
-    }
-    public String getLatencyRecords() {
-        return String.join("\n", output);
     }
 }
