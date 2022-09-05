@@ -1,5 +1,6 @@
 package latency_parser;
 
+
 import org.apache.commons.io.input.TailerListenerAdapter;
 
 import java.io.IOException;

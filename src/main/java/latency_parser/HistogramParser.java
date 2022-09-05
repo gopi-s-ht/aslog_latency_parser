@@ -1,6 +1,5 @@
 package latency_parser;
 
-import org.apache.log4j.Level;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileWriter;
@@ -23,7 +22,6 @@ Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:321) histogram dump: batch-index 
 Aug 29 2022 08:59:58 GMT: INFO (info): (hist.c:340)  (00: 0000657500) (01: 0000000049) (02: 0000000018)
 */
 public class HistogramParser {
-    private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(HistogramParser.class);
     public void Parser(String data) throws ParseException, IOException {
         String[] lines = data.split("\n");
         String dttm;

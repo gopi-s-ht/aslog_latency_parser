@@ -4,34 +4,44 @@ import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
+import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.chainsaw.Main;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 
 @SpringBootApplication(scanBasePackages = {"latency_parser.*"})
 public class LatencyMain {
     private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(LatencyMain.class);
     private static void printHelp() {
-        logger.log(Level.INFO, "This jar accepts following arguments" +
-                "1. Aerospike Log File (Required)" +
-                "       Ex: /var/log/aerospike/aerospike.log" +
-                "2. Boolean value (Optional). Default is True." +
-                "       Set to true to tail from the end of the file, false to tail from the beginning of the file.");
+        logger.log(Level.INFO, "This jar accepts following arguments\n" +
+                "1. Aerospike Log File (Required)\n" +
+                "       Ex: /var/log/aerospike/aerospike.log\n" +
+                "2. Boolean value (Optional). Default is True.\n" +
+                "       Set to true to tail from the end of the file, false to tail from the beginning of the file.\n");
 
     }
 
     public static String logFilePath;
     public static Boolean tail;
     public static String outputFile;
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         BasicConfigurator.configure(); //fix for log4j error. https://stackoverflow.com/questions/12532339/no-appenders-could-be-found-for-loggerlog4j
+        String log4jConfig="/log4j.properties";
+        Properties props = new Properties();
+        InputStream is = Main.class.getResourceAsStream(log4jConfig);
+        props.load(is);
+        PropertyConfigurator.configure(props);
         //Validate input arguments
         if(args.length != 1 && args.length != 2) {
-            logger.log(Level.ERROR, "Incorrect number of arguments specified. Use --help or -h to see the usage of the jar.");
+            logger.log(Level.ERROR, "Incorrect number of arguments specified. Use --help or -h to see the usage of the jar.\n");
             printHelp();
         } else if(args[0].equals("--help") || args[0].equals("-h")) {
             printHelp();
