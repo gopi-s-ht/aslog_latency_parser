@@ -18,6 +18,7 @@ public class LatencyController {
         while((line = bufferedReader.readLine())!=null) {
             stringBuilder.append(line).append("\n");
         }
+        bufferedReader.close();
         return stringBuilder.toString();
     }
 }

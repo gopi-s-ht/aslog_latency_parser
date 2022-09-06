@@ -8,9 +8,9 @@ public class ASLatency {
     String namespace;
     String operation;
     int rec_count;
-    int time_taken_in_ms;
-    final String DELIM = ",";
-    public ASLatency(Date dttm, String namespace, String operation, int rec_count, int time_taken_in_ms) {
+    String time_taken_in_ms;
+
+    public ASLatency(Date dttm, String namespace, String operation, int rec_count, String time_taken_in_ms) {
         this.dttm = dttm;
         this.namespace = namespace;
         this.operation = operation;
@@ -19,6 +19,7 @@ public class ASLatency {
     }
 
     public String getOutputRecord() {
-        return this.dttm.getTime()+DELIM+this.namespace+DELIM+this.operation+DELIM+this.rec_count+DELIM+this.time_taken_in_ms;
+        //return this.dttm.getTime()+DELIM+this.namespace+DELIM+this.operation+DELIM+this.rec_count+DELIM+this.time_taken_in_ms;
+        return "aerospike_read_write_latency_bucket{namespace=\""+this.namespace+"\",operation=\""+this.operation+"\",service=\""+LatencyMain.hostIP+":3000\", le=\""+ this.time_taken_in_ms +"\"} " + this.rec_count;
     }
 }

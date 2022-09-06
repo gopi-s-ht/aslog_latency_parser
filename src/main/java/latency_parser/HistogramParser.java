@@ -31,6 +31,7 @@ public class HistogramParser {
         String operation;
         ArrayList<Integer> rec_count = new ArrayList<>();
         ArrayList<Integer> time_taken_in_ms = new ArrayList<>();
+        String tmpFile = LatencyMain.outputFile + ".tmp";
 
         //Parsing first line
         dttm = lines[0].split("INFO")[0].trim().replaceAll(".$", "");
@@ -50,11 +51,18 @@ public class HistogramParser {
             }
         }
         //Create output
+        int total_rec_count=0;
         for(int i=0; i<time_taken_in_ms.size();i++) {
-            ASLatency obj = new ASLatency(dt, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i));
-            FileWriter fileWriter = new FileWriter(LatencyMain.outputFile, true);
+            total_rec_count += rec_count.get(i);
+            ASLatency obj = new ASLatency(dt, namespace, operation, total_rec_count, time_taken_in_ms.get(i).toString());
+            FileWriter fileWriter = new FileWriter(tmpFile, true);
             fileWriter.append(obj.getOutputRecord()).append("\n");
             fileWriter.close();
         }
+        FileWriter fileWriter = new FileWriter(tmpFile, true);
+        ASLatency objInf = new ASLatency(dt, namespace, operation, total_rec_count, "+Inf");
+        fileWriter.append(objInf.getOutputRecord()).append("\n");
+        fileWriter.append("aerospike_read_write_latency_count{namespace="+namespace+",operation="+operation+",service="+LatencyMain.hostIP+":3000} " + total_rec_count).append("\n");
+        fileWriter.close();
     }
 }

@@ -2,6 +2,7 @@ package latency_parser;
 
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
+import org.apache.commons.io.input.TailerListenerAdapter;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
@@ -14,6 +15,11 @@ import org.springframework.context.event.EventListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Properties;
 
 
@@ -32,6 +38,7 @@ public class LatencyMain {
     public static String logFilePath;
     public static Boolean tail;
     public static String outputFile;
+    public static String hostIP;
     public static void main(String[] args) throws IOException {
         BasicConfigurator.configure(); //fix for log4j error. https://stackoverflow.com/questions/12532339/no-appenders-could-be-found-for-loggerlog4j
         String log4jConfig="/log4j.properties";
@@ -39,6 +46,15 @@ public class LatencyMain {
         InputStream is = Main.class.getResourceAsStream(log4jConfig);
         props.load(is);
         PropertyConfigurator.configure(props);
+        //Get HostIP
+        try(final DatagramSocket socket = new DatagramSocket()) {
+            try {
+                socket.connect(InetAddress.getByName("8.8.8.8"), 10002);
+                hostIP = socket.getLocalAddress().getHostAddress();
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
         //Validate input arguments
         if(args.length != 1 && args.length != 2) {
             logger.log(Level.ERROR, "Incorrect number of arguments specified. Use --help or -h to see the usage of the jar.\n");
@@ -62,6 +78,10 @@ public class LatencyMain {
                 outputFile = "C:\\Users\\ws_htu374\\Documents\\as_latency_metrics.csv";
             else outputFile = "/var/log/as_latency_report.csv";
 
+            /*if(!new File(outputFile).canWrite()) {
+                logger.log(Level.ERROR, "Missing write permission to " + outputFile + ". Terminating...\n");
+                System.exit(1);
+            }*/
             logger.log(Level.INFO, "Sending metrics to " + outputFile);
             SpringApplication.run(LatencyMain.class, args);
         }
