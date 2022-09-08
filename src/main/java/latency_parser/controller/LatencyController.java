@@ -10,7 +10,7 @@ import java.io.*;
 @RestController
 public class LatencyController {
 
-    @RequestMapping(path="/metrics", method = RequestMethod.GET)
+    @RequestMapping(path="/metrics", method = RequestMethod.GET, produces = "text/plain")
     public String getLatencyMetrics() throws IOException {
         StringBuilder stringBuilder = new StringBuilder();
         BufferedReader bufferedReader = new BufferedReader(new FileReader(LatencyMain.outputFile));

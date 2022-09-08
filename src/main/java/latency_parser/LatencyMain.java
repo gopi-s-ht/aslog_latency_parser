@@ -2,7 +2,6 @@ package latency_parser;
 
 import org.apache.commons.io.input.Tailer;
 import org.apache.commons.io.input.TailerListener;
-import org.apache.commons.io.input.TailerListenerAdapter;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.PropertyConfigurator;
@@ -18,8 +17,6 @@ import java.io.InputStream;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Properties;
 
 
@@ -77,11 +74,6 @@ public class LatencyMain {
             if(System.getProperty("os.name").contains("Windows"))
                 outputFile = "C:\\Users\\ws_htu374\\Documents\\as_latency_metrics.csv";
             else outputFile = "/var/log/as_latency_report.csv";
-
-            /*if(!new File(outputFile).canWrite()) {
-                logger.log(Level.ERROR, "Missing write permission to " + outputFile + ". Terminating...\n");
-                System.exit(1);
-            }*/
             logger.log(Level.INFO, "Sending metrics to " + outputFile);
             SpringApplication.run(LatencyMain.class, args);
         }
