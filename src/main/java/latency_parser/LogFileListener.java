@@ -44,15 +44,6 @@ public class LogFileListener extends TailerListenerAdapter {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            FileWriter fileWriter;
-            try {
-                fileWriter = new FileWriter(LatencyMain.outputFile + ".tmp");
-                fileWriter.append("# HELP aerospike_read_write_latency_histogram latency in serving aerospike requests\n" +
-                        "# TYPE aerospike_read_write_latency_histogram histogram\n");
-                fileWriter.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 }

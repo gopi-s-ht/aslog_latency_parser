@@ -51,21 +51,21 @@ public class HistogramParser {
             }
         }
         //Create output
+        FileWriter fileWriter = new FileWriter(tmpFile, true);
+        fileWriter.append("# HELP aerospike_"+operation.replace("-", "_")+"_latency_ms latency in serving aerospike request "+operation+"\n" +
+                "# TYPE aerospike_"+operation.replace("-", "_")+"_latency_ms histogram\n");
         int total_rec_count=0;
         for(int i=0; i<time_taken_in_ms.size();i++) {
             total_rec_count += rec_count.get(i);
             ASLatency obj = new ASLatency(dt, namespace, operation, total_rec_count, time_taken_in_ms.get(i).toString());
-            FileWriter fileWriter = new FileWriter(tmpFile, true);
             fileWriter.append(obj.getOutputRecord()).append("\n");
-            fileWriter.close();
         }
-        FileWriter fileWriter = new FileWriter(tmpFile, true);
         ASLatency objInf = new ASLatency(dt, namespace, operation, total_rec_count, "+Inf");
         fileWriter.append(objInf.getOutputRecord()).append("\n");
         if(namespace==null)
-            fileWriter.append("aerospike_"+operation.replace("-", "_")+"_latency_count{service="+LatencyMain.hostIP+":3000} " + total_rec_count).append("\n");
+            fileWriter.append("aerospike_"+operation.replace("-", "_")+"_latency_count{service=\""+LatencyMain.hostIP+":3000\",} " + total_rec_count).append("\n");
         else
-            fileWriter.append("aerospike_"+operation.replace("-", "_")+"_latency_count{namespace="+namespace+",service="+LatencyMain.hostIP+":3000} " + total_rec_count).append("\n");
+            fileWriter.append("aerospike_"+operation.replace("-", "_")+"_latency_count{namespace=\""+namespace+"\",service=\""+LatencyMain.hostIP+":3000\",} " + total_rec_count).append("\n");
         fileWriter.close();
     }
 }

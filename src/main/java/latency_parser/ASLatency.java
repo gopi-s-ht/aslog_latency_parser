@@ -21,8 +21,8 @@ public class ASLatency {
     public String getOutputRecord() {
         //return this.dttm.getTime()+DELIM+this.namespace+DELIM+this.operation+DELIM+this.rec_count+DELIM+this.time_taken_in_ms;
         if(this.namespace == null)
-            return "aerospike_"+ this.operation +"_latency_bucket{service=\""+LatencyMain.hostIP+":3000\",le=\""+ this.time_taken_in_ms +"\"} " + this.rec_count;
+            return "aerospike_"+ this.operation +"_latency_bucket{service=\""+LatencyMain.hostIP+":3000\",le=\""+ this.time_taken_in_ms +"\",} " + this.rec_count;
         else
-        return "aerospike_"+ this.operation +"_latency_bucket{namespace=\""+this.namespace+"\",service=\""+LatencyMain.hostIP+":3000\",le=\""+ this.time_taken_in_ms +"\"} " + this.rec_count;
+        return "aerospike_"+ this.operation +"_latency_bucket{namespace=\""+this.namespace+"\",service=\""+LatencyMain.hostIP+":3000\",le=\""+ this.time_taken_in_ms +"\",} " + this.rec_count;
     }
 }
