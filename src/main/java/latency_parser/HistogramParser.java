@@ -57,11 +57,9 @@ public class HistogramParser {
         int total_rec_count=0;
         for(int i=0; i<time_taken_in_ms.size();i++) {
             total_rec_count += rec_count.get(i);
-            ASLatency obj = new ASLatency(dt, namespace, operation, total_rec_count, time_taken_in_ms.get(i).toString());
+            ASLatency obj = new ASLatency(dt, namespace, operation, rec_count.get(i), time_taken_in_ms.get(i).toString());
             fileWriter.append(obj.getOutputRecord()).append("\n");
         }
-        ASLatency objInf = new ASLatency(dt, namespace, operation, total_rec_count, "+Inf");
-        fileWriter.append(objInf.getOutputRecord()).append("\n");
         if(namespace==null)
             fileWriter.append("aerospike_"+operation.replace("-", "_")+"_latency_count{service=\""+LatencyMain.hostIP+":3000\",} " + total_rec_count).append("\n");
         else

@@ -72,9 +72,15 @@ public class LatencyMain {
             }
             tail = args.length != 2 || !args[1].equals("false");
             if(System.getProperty("os.name").contains("Windows"))
-                outputFile = "C:\\Users\\ws_htu374\\Documents\\as_latency_metrics.csv";
+                outputFile = System.getProperty("user.home")+"\\Documents\\as_latency_metrics.csv";
             else outputFile = "/var/log/as_latency_report.csv";
+            //reset output metrics file if already exists
+            File output = new File(outputFile);
+            if(output.exists()) {
+                output.delete();
+            }
             logger.log(Level.INFO, "Sending metrics to " + outputFile);
+
             SpringApplication.run(LatencyMain.class, args);
         }
     }
